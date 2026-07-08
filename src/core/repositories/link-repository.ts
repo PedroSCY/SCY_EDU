@@ -3,6 +3,7 @@ import { Link } from '../entities/link'
 export interface FindManyParams {
   categoryId?: string
   search?: string
+  onlyActive?: boolean
 }
 
 export interface LinkRepository {

@@ -12,12 +12,7 @@ interface CategoryData {
 export function CategoriesClient({ categories }: { categories: CategoryData[] }) {
   const [state, formAction, pending] = useActionState(
     async (_prev: unknown, formData: FormData) => {
-      try {
-        await createCategoryAction(formData)
-        return { error: null }
-      } catch (e) {
-        return { error: e instanceof Error ? e.message : 'Erro ao criar' }
-      }
+      return createCategoryAction(formData)
     },
     { error: null as string | null }
   )
@@ -58,7 +53,7 @@ export function CategoriesClient({ categories }: { categories: CategoryData[] })
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-700 disabled:opacity-50 transition-colors"
+          className="select-none rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-700 disabled:opacity-50 transition-colors"
         >
           {pending ? '...' : 'Adicionar'}
         </button>
@@ -90,7 +85,7 @@ export function CategoriesClient({ categories }: { categories: CategoryData[] })
               </div>
               <button
                 onClick={() => handleDelete(cat.id)}
-                className="text-xs text-red-600 hover:text-red-800 transition-colors"
+                className="select-none text-xs text-red-600 hover:text-red-800 transition-colors"
               >
                 Excluir
               </button>

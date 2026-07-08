@@ -1,5 +1,5 @@
-import { auth } from '@/infra/auth/auth'
-import { LinkRepositoryImpl } from '@/infra/database/link-repository-impl'
+import { createServerClient } from '@/infra/supabase/server'
+import { LinkRepositoryImpl } from '@/infra/supabase/link-repository-impl'
 import { deleteLink } from '@/core/use-cases/delete-link'
 import { NextResponse } from 'next/server'
 
@@ -9,8 +9,12 @@ export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth()
-  if (!session?.user) {
+  const supabase = await createServerClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
     return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
   }
 

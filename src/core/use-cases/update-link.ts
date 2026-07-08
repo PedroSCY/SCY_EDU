@@ -1,6 +1,7 @@
 import { Link } from '../entities/link'
 import { LinkRepository } from '../repositories/link-repository'
-import { assertValidUrl } from '@/shared/utils/validation'
+import { assertValidUrl, sanitizeSlug } from '@/shared/utils/validation'
+import type { LinkType } from '@/components/link-type-config'
 
 interface UpdateLinkInput {
   title?: string
@@ -8,6 +9,8 @@ interface UpdateLinkInput {
   url?: string
   slug?: string
   categoryId?: string | null
+  active?: boolean
+  type?: LinkType
 }
 
 export async function updateLink(
@@ -28,7 +31,7 @@ export async function updateLink(
     assertValidUrl(input.url, 'URL de destino')
   }
 
-  const newSlug = input.slug?.trim().toLowerCase().replace(/\s+/g, '-')
+  const newSlug = input.slug ? sanitizeSlug(input.slug) : undefined
   if (newSlug && newSlug !== link.slug) {
     const existing = await repository.findBySlug(newSlug)
     if (existing) {
@@ -43,6 +46,8 @@ export async function updateLink(
     url: input.url ?? link.url,
     slug: newSlug ?? link.slug,
     categoryId: input.categoryId !== undefined ? input.categoryId : link.categoryId,
+    active: input.active ?? link.active,
+    type: input.type ?? link.type,
     updatedAt: new Date(),
   })
 

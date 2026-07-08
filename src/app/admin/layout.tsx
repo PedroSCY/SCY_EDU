@@ -1,6 +1,6 @@
-import { auth } from '@/infra/auth/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { createServerClient } from '@/infra/supabase/server'
 import { LogoutButton } from './logout-button'
 
 export default async function AdminLayout({
@@ -8,9 +8,12 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
-  const session = await auth()
+  const supabase = await createServerClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  if (!session?.user) {
+  if (!user) {
     redirect('/login')
   }
 
@@ -52,7 +55,7 @@ export default async function AdminLayout({
         </nav>
 
         <div className="border-t border-zinc-200 pt-4">
-          <p className="text-xs text-zinc-400 mb-2">{session.user.name}</p>
+          <p className="text-xs text-zinc-400 mb-2">{user.email}</p>
           <LogoutButton />
         </div>
       </aside>

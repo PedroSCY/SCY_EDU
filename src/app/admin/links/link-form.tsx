@@ -1,7 +1,8 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import { createLinkAction, updateLinkAction } from '../actions'
+import { LINK_TYPE_CONFIG, LINK_TYPES, type LinkType } from '@/components/link-type-config'
 
 interface CategoryOption {
   id: string
@@ -16,19 +17,15 @@ interface LinkData {
   url: string
   slug: string
   categoryId: string | null
+  type: string
 }
 
 export function CreateLinkForm({ categories }: { categories: CategoryOption[] }) {
   const [state, formAction, pending] = useActionState(
     async (_prev: unknown, formData: FormData) => {
-      try {
-        await createLinkAction(formData)
-        return { success: true, error: null }
-      } catch (e) {
-        return { success: false, error: e instanceof Error ? e.message : 'Erro ao criar' }
-      }
+      return createLinkAction(formData)
     },
-    { success: false, error: null as string | null }
+    { error: null as string | null }
   )
 
   return (
@@ -45,14 +42,9 @@ export function EditLinkForm({
 }) {
   const [state, formAction, pending] = useActionState(
     async (_prev: unknown, formData: FormData) => {
-      try {
-        await updateLinkAction(link.id, formData)
-        return { success: true, error: null }
-      } catch (e) {
-        return { success: false, error: e instanceof Error ? e.message : 'Erro ao atualizar' }
-      }
+      return updateLinkAction(link.id, formData)
     },
-    { success: false, error: null as string | null }
+    { error: null as string | null }
   )
 
   return (
@@ -79,6 +71,8 @@ function LinkForm({
   error: string | null
   initialData?: LinkData
 }) {
+  const [selectedType, setSelectedType] = useState<string>(initialData?.type ?? 'link')
+
   return (
     <form action={action} className="space-y-4">
       {error && (
@@ -165,17 +159,47 @@ function LinkForm({
         </select>
       </div>
 
+      <div className="pt-2">
+        <div className="flex flex-wrap gap-3">
+          {LINK_TYPES.map((t) => {
+            const cfg = LINK_TYPE_CONFIG[t]
+            const checked = selectedType === t
+            return (
+              <label
+                key={t}
+                className={`select-none flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-medium cursor-pointer transition-all ${
+                  checked
+                    ? 'border-zinc-900 bg-zinc-50 ring-1 ring-zinc-900'
+                    : 'border-zinc-200 hover:border-zinc-300'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="type"
+                  value={t}
+                  checked={checked}
+                  onChange={() => setSelectedType(t)}
+                  className="sr-only"
+                />
+                <cfg.icon className="h-4 w-4" style={{ color: cfg.color }} />
+                {cfg.label}
+              </label>
+            )
+          })}
+        </div>
+      </div>
+
       <div className="flex items-center gap-3 pt-2">
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-zinc-700 disabled:opacity-50 transition-colors"
+          className="select-none rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-zinc-700 disabled:opacity-50 transition-colors"
         >
           {pending ? 'Salvando...' : initialData ? 'Atualizar Link' : 'Criar Link'}
         </button>
         <a
           href="/admin"
-          className="rounded-lg border border-zinc-300 px-4 py-2.5 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 transition-colors"
+          className="select-none rounded-lg border border-zinc-300 px-4 py-2.5 text-sm font-semibold text-zinc-700 hover:bg-zinc-100 transition-colors"
         >
           Cancelar
         </a>

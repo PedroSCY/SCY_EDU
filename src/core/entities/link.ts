@@ -1,3 +1,5 @@
+import type { LinkType } from '@/components/link-type-config'
+
 export interface LinkProps {
   id: string
   title: string
@@ -5,6 +7,8 @@ export interface LinkProps {
   url: string
   slug: string
   categoryId: string | null
+  active: boolean
+  type: LinkType
   createdById: string
   createdAt: Date
   updatedAt: Date
@@ -48,6 +52,14 @@ export class Link {
 
   get categoryId(): string | null {
     return this.props.categoryId
+  }
+
+  get active(): boolean {
+    return this.props.active
+  }
+
+  get type(): LinkType {
+    return this.props.type
   }
 
   get createdById(): string {

@@ -1,13 +1,15 @@
 import { Link } from '../entities/link'
 import { LinkRepository } from '../repositories/link-repository'
-import { assertValidUrl } from '@/shared/utils/validation'
+import { assertValidUrl, sanitizeSlug } from '@/shared/utils/validation'
+import type { LinkType } from '@/components/link-type-config'
 
-interface CreateLinkInput {
+export interface CreateLinkInput {
   title: string
   description?: string
   url: string
   slug: string
   categoryId?: string
+  type?: LinkType
   createdById: string
 }
 
@@ -20,7 +22,10 @@ export async function createLink(
 
   assertValidUrl(input.url, 'URL de destino')
 
-  const existing = await repository.findBySlug(input.slug)
+  const slug = sanitizeSlug(input.slug)
+  if (!slug) throw new Error('Slug inválido após sanitização')
+
+  const existing = await repository.findBySlug(slug)
   if (existing) {
     throw new Error('Já existe um link com este slug')
   }
@@ -29,8 +34,10 @@ export async function createLink(
     title: input.title.trim(),
     description: input.description?.trim() ?? null,
     url: input.url,
-    slug: input.slug.trim().toLowerCase().replace(/\s+/g, '-'),
+    slug,
     categoryId: input.categoryId ?? null,
+    active: true,
+    type: input.type ?? 'link',
     createdById: input.createdById,
   })
 

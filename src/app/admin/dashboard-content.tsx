@@ -1,5 +1,5 @@
-import { LinkRepositoryImpl } from '@/infra/database/link-repository-impl'
-import { CategoryRepositoryImpl } from '@/infra/database/category-repository-impl'
+import { LinkRepositoryImpl } from '@/infra/supabase/link-repository-impl'
+import { CategoryRepositoryImpl } from '@/infra/supabase/category-repository-impl'
 import { listLinks } from '@/core/use-cases/list-links'
 import { listCategories } from '@/core/use-cases/list-categories'
 import { DashboardClient } from './dashboard-client'
@@ -15,8 +15,17 @@ export async function DashboardContent() {
 
   const linksWithCategory = links.map((link) => {
     const cat = categories.find((c) => c.id === link.categoryId)
+    const json = link.toJSON()
     return {
-      ...link.toJSON(),
+      id: json.id,
+      title: json.title,
+      description: json.description,
+      url: json.url,
+      slug: json.slug,
+      categoryId: json.categoryId,
+      active: json.active,
+      type: json.type,
+      createdAt: json.createdAt.toISOString(),
       categoryName: cat?.name ?? null,
       categoryColor: cat?.color ?? null,
     }
@@ -39,7 +48,14 @@ export async function DashboardContent() {
         </div>
       </div>
 
-      <DashboardClient links={linksWithCategory} categories={categories} />
+      <DashboardClient
+        links={linksWithCategory}
+        categories={categories.map((c) => ({
+          id: c.id,
+          name: c.name,
+          color: c.color,
+        }))}
+      />
     </>
   )
 }

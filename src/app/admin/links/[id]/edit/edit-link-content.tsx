@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
-import { LinkRepositoryImpl } from '@/infra/database/link-repository-impl'
-import { CategoryRepositoryImpl } from '@/infra/database/category-repository-impl'
+import { LinkRepositoryImpl } from '@/infra/supabase/link-repository-impl'
+import { CategoryRepositoryImpl } from '@/infra/supabase/category-repository-impl'
 import { listCategories } from '@/core/use-cases/list-categories'
 import { EditLinkForm } from '../../link-form'
 
@@ -24,7 +24,11 @@ export async function EditLinkContent({ params }: Props) {
 
   return (
     <EditLinkForm
-      categories={categories}
+      categories={categories.map((c) => ({
+        id: c.id,
+        name: c.name,
+        color: c.color,
+      }))}
       link={{
         id: link.id,
         title: link.title,
@@ -32,6 +36,7 @@ export async function EditLinkContent({ params }: Props) {
         url: link.url,
         slug: link.slug,
         categoryId: link.categoryId,
+        type: link.type,
       }}
     />
   )

@@ -55,7 +55,13 @@ export class User {
   }
 
   toJSON(): Omit<UserProps, 'password'> {
-    const { password: _, ...rest } = this.props
-    return rest
+    return {
+      id: this.props.id,
+      name: this.props.name,
+      email: this.props.email,
+      role: this.props.role,
+      createdAt: this.props.createdAt,
+      updatedAt: this.props.updatedAt,
+    }
   }
 }

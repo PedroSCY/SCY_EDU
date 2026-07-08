@@ -12,3 +12,13 @@ export function assertValidUrl(url: string, field = 'URL'): void {
     throw new Error(`${field} inválida. Use uma URL que comece com http:// ou https://`)
   }
 }
+
+export function sanitizeSlug(slug: string): string {
+  return slug
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+}
