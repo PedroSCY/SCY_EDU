@@ -1,9 +1,11 @@
 'use client'
 
-import { useCallback, useTransition } from 'react'
+import { useCallback, useTransition, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { toggleLinkAction } from './actions'
 import { LINK_TYPE_CONFIG, type LinkType } from '@/components/link-type-config'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 
 interface CategoryData {
   id: string
@@ -34,23 +36,26 @@ export function DashboardClient({
 }) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
 
   const handleDelete = useCallback(
     async (id: string) => {
-      if (!confirm('Tem certeza que deseja excluir este link?')) return
-
       const res = await fetch(`/api/admin/links/${id}`, { method: 'DELETE' })
       if (res.ok) {
+        toast.success('Link excluído com sucesso')
         router.refresh()
+      } else {
+        toast.error('Erro ao excluir link')
       }
     },
     [router]
   )
 
   const handleToggle = useCallback(
-    async (id: string) => {
+    async (id: string, currentActive: boolean) => {
       startTransition(async () => {
         await toggleLinkAction(id)
+        toast.success(currentActive ? 'Link desativado' : 'Link ativado')
         router.refresh()
       })
     },
@@ -145,7 +150,7 @@ export function DashboardClient({
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <button
-                    onClick={() => handleToggle(link.id)}
+                    onClick={() => handleToggle(link.id, link.active !== false)}
                     disabled={pending}
                     className={`select-none rounded-md px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50 ${
                       link.active === false
@@ -163,7 +168,7 @@ export function DashboardClient({
                     Editar
                   </a>
                   <button
-                    onClick={() => handleDelete(link.id)}
+                    onClick={() => setDeleteTarget(link.id)}
                     className="select-none rounded-md px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors"
                   >
                     Excluir
@@ -174,6 +179,17 @@ export function DashboardClient({
           })}
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title="Excluir link"
+        description="Tem certeza que deseja excluir este link? Esta ação não pode ser desfeita."
+        confirmLabel="Excluir"
+        cancelLabel="Cancelar"
+        variant="destructive"
+        onConfirm={() => deleteTarget && handleDelete(deleteTarget)}
+      />
     </div>
   )
 }

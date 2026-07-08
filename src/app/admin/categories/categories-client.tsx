@@ -1,7 +1,10 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { createCategoryAction, deleteCategoryAction } from '../actions'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 
 interface CategoryData {
   id: string
@@ -10,16 +13,24 @@ interface CategoryData {
 }
 
 export function CategoriesClient({ categories }: { categories: CategoryData[] }) {
+  const router = useRouter()
   const [state, formAction, pending] = useActionState(
     async (_prev: unknown, formData: FormData) => {
-      return createCategoryAction(formData)
+      const result = await createCategoryAction(formData)
+      if (result.error) return result
+      toast.success('Categoria criada com sucesso')
+      router.refresh()
+      return result
     },
     { error: null as string | null }
   )
 
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
+
   async function handleDelete(id: string) {
-    if (!confirm('Tem certeza que deseja excluir esta categoria?')) return
     await deleteCategoryAction(id)
+    toast.success('Categoria excluída com sucesso')
+    router.refresh()
   }
 
   return (
@@ -84,7 +95,7 @@ export function CategoriesClient({ categories }: { categories: CategoryData[] })
                 <span className="text-sm font-medium text-zinc-900">{cat.name}</span>
               </div>
               <button
-                onClick={() => handleDelete(cat.id)}
+                onClick={() => setDeleteTarget(cat.id)}
                 className="select-none text-xs text-red-600 hover:text-red-800 transition-colors"
               >
                 Excluir
@@ -93,6 +104,17 @@ export function CategoriesClient({ categories }: { categories: CategoryData[] })
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title="Excluir categoria"
+        description="Tem certeza que deseja excluir esta categoria? Os links vinculados a ela ficarão sem categoria."
+        confirmLabel="Excluir"
+        cancelLabel="Cancelar"
+        variant="destructive"
+        onConfirm={() => deleteTarget && handleDelete(deleteTarget)}
+      />
     </div>
   )
 }

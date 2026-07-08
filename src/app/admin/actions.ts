@@ -117,7 +117,7 @@ export async function createCategoryAction(
   if (!name) return { error: 'Nome é obrigatório' }
 
   await createCategory(categoryRepository, { name, color: color || undefined })
-  redirect('/admin/categories')
+  return { error: null }
 }
 
 export async function deleteCategoryAction(
@@ -125,5 +125,5 @@ export async function deleteCategoryAction(
 ): Promise<ActionResult> {
   await getUserId()
   await categoryRepository.delete(categoryId)
-  redirect('/admin/categories')
+  return { error: null }
 }
